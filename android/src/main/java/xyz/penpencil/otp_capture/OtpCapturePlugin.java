@@ -1,5 +1,17 @@
 package xyz.penpencil.otp_capture;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.os.Bundle;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import com.getcapacitor.JSObject;
+import com.getcapacitor.NativePlugin;
+import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.google.android.gms.auth.api.phone.SmsRetriever;
@@ -15,7 +27,7 @@ import java.util.regex.Pattern;
 import static android.app.Activity.RESULT_OK;
 
 @NativePlugin(
-        requestCodes={OtpListenerPlugin.REQ_USER_CONSENT} // register request code(s) for intent results
+        requestCodes={OtpCapturePlugin.REQ_USER_CONSENT} // register request code(s) for intent results
 )
 
 public class OtpCapturePlugin extends Plugin {
@@ -28,25 +40,33 @@ public class OtpCapturePlugin extends Plugin {
         saveCall(call);
         registerBroadcastReceiver(call);
 
-        SmsRetrieverClient client = SmsRetriever.getClient(getActivity().getApplicationContext());
+        SmsRetrieverClient client = SmsRetriever.getClient(getContext());
         //We can add sender phone number or leave it blank
         // I'm adding null here
         client.startSmsUserConsent(null).addOnSuccessListener(new OnSuccessListener<Void>() {
             @Override
             public void onSuccess(Void aVoid) {
-                call.resolve();
+                PluginCall savedCall = getSavedCall();
+                if (savedCall == null) {
+                    return;
+                }
+                savedCall.resolve();
             }
         }).addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception e) {
-                call.reject("Unable to setup listener", e);
+                PluginCall savedCall = getSavedCall();
+                if (savedCall == null) {
+                    return;
+                }
+                savedCall.reject("Unable to setup listener", e);
             }
         });
     }
 
     @PluginMethod()
     public void stopSmsUserConsent(PluginCall call) {
-        getActivity().unregisterReceiver(smsBroadcastReceiver);
+        getContext().unregisterReceiver(smsBroadcastReceiver);
         call.resolve();
     }
 
@@ -77,7 +97,7 @@ public class OtpCapturePlugin extends Plugin {
             String otp = matcher.group(0);
             JSObject jsObject = new JSObject();
             jsObject.put("otp", otp);
-            notifyListeners("otp", jsObject);
+            notifyListeners("otpListener", jsObject);
         }
     }
 
@@ -87,14 +107,18 @@ public class OtpCapturePlugin extends Plugin {
                 new SmsBroadcastReceiver.SmsBroadcastReceiverListener() {
                     @Override
                     public void onSuccess(Intent intent) {
-                        startActivityForResult(call, intent, REQ_USER_CONSENT);
+                        PluginCall savedCall = getSavedCall();
+                        if (savedCall == null) {
+                            return;
+                        }
+                        startActivityForResult(savedCall, intent, REQ_USER_CONSENT);
                     }
                     @Override
                     public void onFailure() {
                     }
                 };
         IntentFilter intentFilter = new IntentFilter(SmsRetriever.SMS_RETRIEVED_ACTION);
-        getActivity().registerReceiver(smsBroadcastReceiver, intentFilter);
+        getContext().registerReceiver(smsBroadcastReceiver, intentFilter);
     }
 }
 
@@ -123,4 +147,3 @@ class SmsBroadcastReceiver extends BroadcastReceiver {
         void onFailure();
     }
 }
-

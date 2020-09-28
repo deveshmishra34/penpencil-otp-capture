@@ -1,7 +1,7 @@
 {
   "name": "penpencil-otp-capture",
-  "version": "0.0.1",
-  "description": "Capture 6 digit otp from message for android",
+  "version": "0.0.3",
+  "description": "Capture 6 digit otp from message for android ionic 4 capacitor",
   "main": "dist/plugin.js",
   "module": "dist/esm/index.js",
   "types": "dist/esm/index.d.ts",
@@ -42,7 +42,9 @@
   "keywords": [
     "capacitor",
     "plugin",
-    "native"
+    "native",
+    "otp capture",
+    "ionic 4 otp capture"
   ],
   "capacitor": {
     "ios": {

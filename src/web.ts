@@ -9,9 +9,12 @@ export class OtpCapturePluginWeb extends WebPlugin implements OtpCapturePluginPl
     });
   }
 
-  async echo(options: { value: string }): Promise<{ value: string }> {
-    console.log('ECHO', options);
-    return options;
+  async startSmsUserConsent(): Promise<void> {
+    return undefined;
+  }
+
+  async stopSmsUserConsent(): Promise<void> {
+    return undefined;
   }
 }
 

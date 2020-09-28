@@ -5,5 +5,9 @@ declare module '@capacitor/core' {
 }
 
 export interface OtpCapturePluginPlugin {
-  echo(options: { value: string }): Promise<{ value: string }>;
+  startSmsUserConsent(): Promise<void>;
+}
+
+export interface OtpCapturePluginPlugin {
+  stopSmsUserConsent(): Promise<void>;
 }
